@@ -43,11 +43,12 @@ go run client.go
 docker build -t grpc-server -f Dockerfile.server .
 docker build -t grpc-client -f Dockerfile.client .
 
-### Running with Docker Compose
-docker-compose up
+### Running Docker Containers
+# For Server (needs to be run first)
+docker run -d --name grpc-server -p 50051:50051 grpc-server
 
-
-This starts both the server and client containers.
+# For Client
+docker run -it --name grpc-client grpc-client     
 
 ## gRPC Services
 

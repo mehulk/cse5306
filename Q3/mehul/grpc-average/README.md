@@ -9,7 +9,6 @@ This project implements a gRPC-based client-server application to calculate aver
 - `generated/` - Contains generated gRPC and Protobuf files
 - `Dockerfile.server` - Dockerfile for the server
 - `Dockerfile.client` - Dockerfile for the client
-- `docker-compose.yml` - Defines multi-container setup
 
 ## Requirements
 - Python 3

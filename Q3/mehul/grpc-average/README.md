@@ -44,10 +44,10 @@ docker build -t grpc-server -f Dockerfile.server .
 docker build -t grpc-client -f Dockerfile.client .
 
 ### Running Docker Containers
-# For Server (needs to be run first)
+#### For Server (needs to be run first)
 docker run -d --name grpc-server -p 50051:50051 grpc-server
 
-# For Client
+#### For Client
 docker run -it --name grpc-client grpc-client     
 
 ## gRPC Services

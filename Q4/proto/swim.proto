@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package swim;
+
+service SwimService {
+  rpc Ping (PingRequest) returns (PingResponse) {}
+  rpc IndirectPing (IndirectPingRequest) returns (IndirectPingResponse) {}
+}
+
+message PingRequest {
+  int32 sender_id = 1;
+}
+
+message PingResponse {
+  int32 sender_id = 1;
+}
+
+message IndirectPingRequest {
+  int32 sender_id = 1;
+  int32 target_id = 2;
+}
+
+message IndirectPingResponse {
+  int32 sender_id = 1;
+  bool success = 2;
+}

@@ -1,0 +1,64 @@
+syntax = "proto3";
+option go_package = "proto/swim";
+
+
+package swim;
+
+service SwimService {
+  rpc Ping (PingRequest) returns (PingResponse) {}
+  rpc IndirectPing (IndirectPingRequest) returns (IndirectPingResponse) {}
+  rpc Multicast (MulticastRequest) returns (MulticastResponse) {}
+  rpc Join (JoinRequest) returns (JoinResponse) {}
+}
+
+message PingRequest {
+  int32 sender_id = 1;
+}
+
+message PingResponse {
+  int32 sender_id = 1;
+}
+
+message IndirectPingRequest {
+  int32 sender_id = 1;
+  int32 target_id = 2;
+}
+
+message IndirectPingResponse {
+  int32 sender_id = 1;
+  bool success = 2;
+}
+
+message MulticastRequest {
+  int32 sender_id = 1;
+  int32 failed_node_id = 2;
+}
+
+message MulticastResponse {
+  bool success = 1;
+}
+
+message JoinRequest {
+  int32 new_node_id = 1;
+}
+
+message JoinResponse {
+  repeated int32 membership_list = 1;
+}
+
+message NodeStatus {
+  int32 node_id = 1;
+  bool is_alive = 2;
+}
+
+service InternalService {
+  rpc UpdateMembershipList (UpdateMembershipListRequest) returns (UpdateMembershipListResponse) {}
+}
+
+message UpdateMembershipListRequest {
+  repeated NodeStatus nodes = 1;
+}
+
+message UpdateMembershipListResponse {
+  bool success = 1;
+}

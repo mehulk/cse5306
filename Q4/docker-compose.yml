@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  node1:
+    build: .
+    environment:
+      - NODE_ID=1
+    networks:
+      - swim_network
+
+  node2:
+    build: .
+    environment:
+      - NODE_ID=2
+    networks:
+      - swim_network
+
+  node3:
+    build: .
+    environment:
+      - NODE_ID=3
+    networks:
+      - swim_network
+
+  node4:
+    build: .
+    environment:
+      - NODE_ID=4
+    networks:
+      - swim_network
+
+  node5:
+    build: .
+    environment:
+      - NODE_ID=5
+    networks:
+      - swim_network
+
+networks:
+  swim_network:
+    driver: bridge

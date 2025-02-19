@@ -1,6 +1,6 @@
 module q5pranav
 
-go 1.24.0
+go 1.23
 
 require (
 	google.golang.org/grpc v1.70.0

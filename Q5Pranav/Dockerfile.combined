@@ -1,0 +1,43 @@
+# === Stage 1: Build the Go Dissemination Binary (Q5) ===
+FROM golang:1.23 as go_builder
+
+WORKDIR /app/go
+# Copy your Go module files for Q5
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy the rest of your Q5 code (including Disem.go, swim/)
+COPY . . 
+RUN go build -o dissemination-component Disem.go
+
+# === Stage 2: Build the Final Combined Image for Python FD + Go DC ===
+FROM python:3.9-slim
+
+# Install supervisor to run both Python and Go processes
+RUN apt-get update && apt-get install -y supervisor && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy the Q4 Python code, proto files, requirements
+COPY Q4/proto/ /app/proto/
+COPY Q4/src/ /app/src/
+COPY Q4/requirements.txt /app/
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Compile the proto file for Python
+RUN python -m grpc_tools.protoc -I./proto --python_out=./src --grpc_python_out=./src ./proto/swim.proto
+
+# Copy the pre-built Go binary from the builder stage
+COPY --from=go_builder /app/go/dissemination-component /app/dissemination-component
+
+# Copy your supervisor config
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Expose ports (optional if you want to debug)
+EXPOSE 50050-50100
+EXPOSE 60050-60100
+
+# Start supervisord to launch both processes
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

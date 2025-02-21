@@ -1,37 +1,70 @@
-# version: '3'
+version: '3'
 
 services:
   node1:
-    build: .
-    ports:
-      - "50051:50051"
+    build:
+      context: .
+      dockerfile: Dockerfile.combined
     environment:
       - NODE_ID=1
+    # Healthcheck: checks if Node1's Python FD on port 50051 is up
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "50051"]
+      interval: 5s        # Time between health checks
+      timeout: 2s         # Time allowed for each check
+      retries: 10         # Number of failed checks before unhealth
+      start_period: 30s   # Give Node1 up to 30s to start before counting fails
+    networks:
+      - swim_network
 
   node2:
-    build: .
-    ports:
-      - "50052:50051"
+    build:
+      context: .
+      dockerfile: Dockerfile.combined
     environment:
       - NODE_ID=2
+    depends_on:
+      node1:
+        condition: service_healthy
+    networks:
+      - swim_network
 
   node3:
-    build: .
-    ports:
-      - "50053:50051"
+    build:
+      context: .
+      dockerfile: Dockerfile.combined
     environment:
       - NODE_ID=3
+    depends_on:
+      node1:
+        condition: service_healthy
+    networks:
+      - swim_network
 
   node4:
-    build: .
-    ports:
-      - "50054:50051"
+    build:
+      context: .
+      dockerfile: Dockerfile.combined
     environment:
       - NODE_ID=4
+    depends_on:
+      node1:
+        condition: service_healthy
+    networks:
+      - swim_network
 
   node5:
-    build: .
-    ports:
-      - "50055:50051"
+    build:
+      context: .
+      dockerfile: Dockerfile.combined
     environment:
       - NODE_ID=5
+    depends_on:
+      node1:
+        condition: service_healthy
+    networks:
+      - swim_network
+
+networks:
+  swim_network:
+    driver: bridge

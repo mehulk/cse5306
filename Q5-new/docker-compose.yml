@@ -1,0 +1,57 @@
+version: '3'
+services:
+  node1:
+    build: .
+    container_name: node1
+    environment:
+      - NODE_ID=1
+      - DISSEM_PORT=6000
+      # We'll say membership uses the format ID:host:port
+      # Matching your Python FD ports: node1=50051, node2=50052, etc.
+      - MEMBERSHIP=1:node1:50051,2:node2:50052,3:node3:50053,4:node4:50054,5:node5:50055
+    networks:
+      - swim_network
+
+  node2:
+    build: .
+    container_name: node2
+    environment:
+      - NODE_ID=2
+      - DISSEM_PORT=6000
+      - MEMBERSHIP=1:node1:50051,2:node2:50052,3:node3:50053,4:node4:50054,5:node5:50055
+    networks:
+      - swim_network
+
+  node3:
+    build: .
+    container_name: node3
+    environment:
+      - NODE_ID=3
+      - DISSEM_PORT=6000
+      - MEMBERSHIP=1:node1:50051,2:node2:50052,3:node3:50053,4:node4:50054,5:node5:50055
+    networks:
+      - swim_network
+
+  node4:
+    build: .
+    container_name: node4
+    environment:
+      - NODE_ID=4
+      - DISSEM_PORT=6000
+      - MEMBERSHIP=1:node1:50051,2:node2:50052,3:node3:50053,4:node4:50054,5:node5:50055
+    networks:
+      - swim_network
+
+  node5:
+    build: .
+    container_name: node5
+    environment:
+      - NODE_ID=5
+      - DISSEM_PORT=6000
+      - MEMBERSHIP=1:node1:50051,2:node2:50052,3:node3:50053,4:node4:50054,5:node5:50055
+    networks:
+      - swim_network
+
+networks:
+  swim_network:
+    driver: bridge

@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package swim;
+
+option go_package = "generated/swim;swim";
+
+// The same service can hold both FD (Ping/IndirectPing) and 
+// Dissemination (Join/BroadcastFailure) RPCs, or you can split 
+// into two services. Here we keep them in one for simplicity.
+service SwimService {
+  // Failure Detector RPCs (already exist):
+  rpc Ping (PingRequest) returns (PingResponse) {}
+  rpc IndirectPing (IndirectPingRequest) returns (IndirectPingResponse) {}
+
+  // Dissemination RPCs (newly added):
+  rpc Join (JoinRequest) returns (JoinResponse) {}
+  rpc BroadcastFailure (BroadcastFailureRequest) returns (BroadcastFailureResponse) {}
+}
+
+// Existing FD messages (unchanged):
+message PingRequest {
+  int32 sender_id = 1;
+}
+
+message PingResponse {
+  int32 sender_id = 1;
+}
+
+message IndirectPingRequest {
+  int32 sender_id = 1;
+  int32 target_id = 2;
+}
+
+message IndirectPingResponse {
+  int32 sender_id = 1;
+  bool success = 2;
+}
+
+// Dissemination: for new node joining
+message JoinRequest {
+  int32 sender_id = 1;
+  string host = 2;
+  int32 port = 3;
+}
+
+message JoinResponse {
+  repeated NodeInfo membership_list = 1;
+}
+
+// Dissemination: for propagating info that a node has failed
+message BroadcastFailureRequest {
+  int32 sender_id = 1;
+  int32 failed_node_id = 2;
+}
+
+message BroadcastFailureResponse {
+  bool success = 1;
+}
+
+// Common node info 
+message NodeInfo {
+  int32 node_id = 1;
+  string host = 2;
+  int32 port = 3;
+}

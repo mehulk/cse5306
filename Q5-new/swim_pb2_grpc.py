@@ -3,6 +3,7 @@
 import grpc
 import warnings
 
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 import swim_pb2 as swim__pb2
 
 GRPC_GENERATED_VERSION = '1.70.0'
@@ -26,9 +27,8 @@ if _version_not_supported:
 
 
 class SwimServiceStub(object):
-    """The same service can hold both FD (Ping/IndirectPing) and 
-    Dissemination (Join/BroadcastFailure) RPCs, or you can split 
-    into two services. Here we keep them in one for simplicity.
+    """The service holds both FD (Ping/IndirectPing) and
+    Dissemination (Join, BroadcastFailure, StreamMembership) RPCs.
     """
 
     def __init__(self, channel):
@@ -57,16 +57,20 @@ class SwimServiceStub(object):
                 request_serializer=swim__pb2.BroadcastFailureRequest.SerializeToString,
                 response_deserializer=swim__pb2.BroadcastFailureResponse.FromString,
                 _registered_method=True)
+        self.StreamMembership = channel.unary_stream(
+                '/swim.SwimService/StreamMembership',
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                response_deserializer=swim__pb2.JoinResponse.FromString,
+                _registered_method=True)
 
 
 class SwimServiceServicer(object):
-    """The same service can hold both FD (Ping/IndirectPing) and 
-    Dissemination (Join/BroadcastFailure) RPCs, or you can split 
-    into two services. Here we keep them in one for simplicity.
+    """The service holds both FD (Ping/IndirectPing) and
+    Dissemination (Join, BroadcastFailure, StreamMembership) RPCs.
     """
 
     def Ping(self, request, context):
-        """Failure Detector RPCs (already exist):
+        """Failure Detector RPCs:
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -79,7 +83,7 @@ class SwimServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def Join(self, request, context):
-        """Dissemination RPCs (newly added):
+        """Dissemination RPCs:
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -87,6 +91,13 @@ class SwimServiceServicer(object):
 
     def BroadcastFailure(self, request, context):
         """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def StreamMembership(self, request, context):
+        """New: DC pushes membership updates via streaming.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -114,6 +125,11 @@ def add_SwimServiceServicer_to_server(servicer, server):
                     request_deserializer=swim__pb2.BroadcastFailureRequest.FromString,
                     response_serializer=swim__pb2.BroadcastFailureResponse.SerializeToString,
             ),
+            'StreamMembership': grpc.unary_stream_rpc_method_handler(
+                    servicer.StreamMembership,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    response_serializer=swim__pb2.JoinResponse.SerializeToString,
+            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
             'swim.SwimService', rpc_method_handlers)
@@ -123,9 +139,8 @@ def add_SwimServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class SwimService(object):
-    """The same service can hold both FD (Ping/IndirectPing) and 
-    Dissemination (Join/BroadcastFailure) RPCs, or you can split 
-    into two services. Here we keep them in one for simplicity.
+    """The service holds both FD (Ping/IndirectPing) and
+    Dissemination (Join, BroadcastFailure, StreamMembership) RPCs.
     """
 
     @staticmethod
@@ -226,6 +241,33 @@ class SwimService(object):
             '/swim.SwimService/BroadcastFailure',
             swim__pb2.BroadcastFailureRequest.SerializeToString,
             swim__pb2.BroadcastFailureResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def StreamMembership(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(
+            request,
+            target,
+            '/swim.SwimService/StreamMembership',
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            swim__pb2.JoinResponse.FromString,
             options,
             channel_credentials,
             insecure,

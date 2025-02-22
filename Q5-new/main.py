@@ -1,48 +1,67 @@
-import grpc
-from concurrent import futures
-import swim_pb2_grpc
+# import threading
+# import time
+# import os
+# from failure_detector import FailureDetector
+# from node import serve_fd
+# import swim_pb2
+
+# def run_fd_client():
+#     membership_str = os.environ.get("MEMBERSHIP", "")
+#     membership_list = []
+#     if membership_str:
+#         for entry in membership_str.split(","):
+#             parts = entry.split(":")
+#             if len(parts) == 3:
+#                 node_id = int(parts[0])
+#                 host = parts[1]
+#                 port = int(parts[2])
+#                 # Create NodeInfo using the proto message (for DC ports)
+#                 membership_list.append(swim_pb2.NodeInfo(node_id=node_id, host=host, port=port))
+#     node_id = int(os.environ.get("NODE_ID", "1"))
+#     fd = FailureDetector(node_id, membership_list, T=5, k=3)
+#     fd.run()
+
+# if __name__ == '__main__':
+#     t = threading.Thread(target=serve_fd)
+#     t.daemon = True
+#     t.start()
+#     time.sleep(1)  # Give FD server time to start.
+#     run_fd_client()
+
+
 import threading
-import os
 import time
+import os
+from failure_detector import FailureDetector, subscribe_membership_updates
+from node import serve_fd
+import swim_pb2
+import swim_pb2_grpc
 
-from node import Node
-from failure_detector import FailureDetector
-
-class NodeInfo:
-    def __init__(self, node_id, host, port):
-        self.node_id = node_id
-        self.host = host
-        self.port = port
-        self.last_heard_from = 0
-
-def serve(node_id, host, port, membership_list):
-    # Start a gRPC server for the Python FD + stubs for dissemination
-    node = Node(node_id, membership_list)
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    swim_pb2_grpc.add_SwimServiceServicer_to_server(node, server)
-    server.add_insecure_port(f'{host}:{port}')
-    server.start()
-    
-    # Start the Failure Detector in a background thread
-    failure_detector = FailureDetector(node_id, membership_list)
-    threading.Thread(target=failure_detector.run, daemon=True).start()
-    
-    server.wait_for_termination()
+def run_fd_client():
+    membership_str = os.environ.get("MEMBERSHIP", "")
+    membership_list = []
+    if membership_str:
+        for entry in membership_str.split(","):
+            parts = entry.split(":")
+            if len(parts) == 3:
+                node_id = int(parts[0])
+                host = parts[1]
+                port = int(parts[2])
+                membership_list.append(swim_pb2.NodeInfo(node_id=node_id, host=host, port=port))
+    node_id = int(os.environ.get("NODE_ID", "1"))
+    fd = FailureDetector(node_id, membership_list, T=5, k=3)
+    # Start subscription thread to receive membership updates from local DC.
+    local_dc_port = 60050 + node_id
+    sub_thread = threading.Thread(target=subscribe_membership_updates, args=(local_dc_port, fd))
+    sub_thread.daemon = True
+    sub_thread.start()
+    fd.run()
 
 if __name__ == '__main__':
-    # Hard-code or environment for membership
-    membership_list = [
-        NodeInfo(1, 'node1', 50051),
-        NodeInfo(2, 'node2', 50052),
-        NodeInfo(3, 'node3', 50053),
-        NodeInfo(4, 'node4', 50054),
-        NodeInfo(5, 'node5', 50055),
-    ]
-    
-    node_id = int(os.environ.get('NODE_ID', 1))
-    node_info = next(node for node in membership_list if node.node_id == node_id)
-
-    # Start the Python FD server
-    # (In practice, we might want the Python container to use the same container name, or 
-    #  rely on docker-compose's DNS. Adjust as needed.)
-    serve(node_id, node_info.host, node_info.port, membership_list)
+    # Start FD server in a separate thread.
+    t = threading.Thread(target=serve_fd)
+    t.daemon = True
+    t.start()
+    # Give FD server time to start.
+    time.sleep(1)
+    run_fd_client()

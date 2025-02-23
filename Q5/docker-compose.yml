@@ -1,0 +1,64 @@
+services:
+  node1:
+    build: .
+    container_name: node1
+    environment:
+      - NODE_ID=1
+      - MEMBERSHIP=1:node1:60051,2:node2:60052,3:node3:60053,4:node4:60054,5:node5:60055
+    ports:
+      - "50051:50051"  # FD port for node1
+      - "60051:60051"  # DC port for node1
+    networks:
+      - swim_network
+
+  node2:
+    build: .
+    container_name: node2
+    environment:
+      - NODE_ID=2
+      - MEMBERSHIP=1:node1:60051,2:node2:60052,3:node3:60053,4:node4:60054,5:node5:60055
+    ports:
+      - "50052:50052"
+      - "60052:60052"
+    networks:
+      - swim_network
+
+  node3:
+    build: .
+    container_name: node3
+    environment:
+      - NODE_ID=3
+      - MEMBERSHIP=1:node1:60051,2:node2:60052,3:node3:60053,4:node4:60054,5:node5:60055
+    ports:
+      - "50053:50053"
+      - "60053:60053"
+    networks:
+      - swim_network
+
+  node4:
+    build: .
+    container_name: node4
+    environment:
+      - NODE_ID=4
+      - MEMBERSHIP=1:node1:60051,2:node2:60052,3:node3:60053,4:node4:60054,5:node5:60055
+    ports:
+      - "50054:50054"
+      - "60054:60054"
+    networks:
+      - swim_network
+
+  node5:
+    build: .
+    container_name: node5
+    environment:
+      - NODE_ID=5
+      - MEMBERSHIP=1:node1:60051,2:node2:60052,3:node3:60053,4:node4:60054,5:node5:60055
+    ports:
+      - "50055:50055"
+      - "60055:60055"
+    networks:
+      - swim_network
+
+networks:
+  swim_network:
+    driver: bridge

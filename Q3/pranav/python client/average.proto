@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package average;
+
+option java_multiple_files = true;
+option java_package = "io.grpc.examples.average";
+option java_outer_classname = "AverageProto";
+
+service Calculator {
+  rpc Average (AverageRequest) returns (AverageResponse);
+  rpc RunningAverage (stream NumberRequest) returns (AverageResponse);
+}
+
+message AverageRequest {
+  int32 num1 = 1;
+  int32 num2 = 2;
+}
+
+message AverageResponse {
+  double result = 1;
+}
+
+message NumberRequest {
+  int32 number = 1;
+}

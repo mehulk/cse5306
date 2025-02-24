@@ -18,15 +18,17 @@ Test Case 2: Node Failure Detection
         Use docker stop node3 to simulate a node failure.
         Check the logs of other nodes to see if they detect and report the failure.
 
-Test Case 3: Indirect Ping and Failure Confirmation
-        This test case tests the indirect ping mechanism for confirming node failures.
-        Start all 5 nodes.
-        Modify one node (e.g., node2) to artificially fail direct pings but respond to indirect pings.
-        Observe if other nodes use indirect pings to confirm node2's status.
+Test Case 3: Node Failure Before Node6 Joins
+        Ensures that failed nodes are promptly detected and removed.
+        Validates that the updated membership list accurately reflects the current cluster state.
+        Confirms that new nodes bootstrap using the correct, consistent membership information.
     Implementation:
-        Modify the Ping method in node2's FD implementation to always return an error.
-        Ensure the IndirectPing method still works correctly.
-        Check logs to confirm that other nodes use indirect pings to verify node2's status.
+        Bring up nodes 1–5 using your docker‑compose file. Verify via logs that each node’s DC has parsed its full membership list (e.g. [1,2,3,4,5]) and that FDs are actively pinging.
+        Observe if other nodes use indirect pings to confirm node2's status.
+        Stop one node (e.g., node3) to simulate failure; Confirm in the logs of the remaining nodes that they detect node3’s failure (via BroadcastFailure) and update their membership lists to exclude node3.
+        Update node6’s environment to start with an empty membership (MEMBERSHIP: ""). Then start node6; Node6 should contact its bootstrap node (e.g., node2) and receive the current membership list (e.g. [1,2,4,5]).
+        Check node6’s logs for a message indicating that it updated its membership from the bootstrap node, which should now exclude the failed node.
+
 
 Test Case 4: Membership List Consistency
         This test case ensures that all nodes maintain consistent membership lists.

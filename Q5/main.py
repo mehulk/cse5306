@@ -31,6 +31,7 @@
 
 import threading
 import time
+import grpc
 import os
 from failure_detector import FailureDetector, subscribe_membership_updates
 from node import serve_fd
@@ -57,7 +58,30 @@ def run_fd_client():
     sub_thread.start()
     fd.run()
 
+def bootstrap_new_node():
+    bootstrap_addr = os.getenv("BOOTSTRAP_ADDRESS")
+    node_id = int(os.getenv("NODE_ID"))
+    
+    channel = grpc.insecure_channel(bootstrap_addr)
+    stub = swim_pb2_grpc.SwimServiceStub(channel)
+    
+    try:
+        response = stub.Join(swim_pb2.JoinRequest(
+            sender_id=node_id,
+            host=f"node{node_id}",
+            port=60050 + node_id
+        ))
+        print("\n=== Obtained Membership List ===")
+        for member in response.membership_list:
+            print(f"Node {member.node_id} - {member.host}:{member.port}")
+        print("================================")
+    except grpc.RpcError as e:
+        print(f"Bootstrap failed: {e.code()}: {e.details()}")
+
 if __name__ == '__main__':
+    if os.getenv("BOOTSTRAP_NEEDED", "false").lower() == "true":
+        bootstrap_new_node()
+        exit(0)
     # Start FD server in a separate thread.
     t = threading.Thread(target=serve_fd)
     t.daemon = True

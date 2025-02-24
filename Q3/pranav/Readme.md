@@ -45,7 +45,7 @@ python -m grpc_tools.protoc -I=proto --python_out=python\ client --grpc_python_o
 ```
 
 ### Step 2: Build Docker Images
-Navigate to the root directory (`Q3Pranav`) and build Docker images for both the server and client.
+Navigate to the root directory (`pranav`) and build Docker images for both the server and client.
 
 #### Build Server Image:
 ```bash

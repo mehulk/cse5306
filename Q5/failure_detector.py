@@ -35,6 +35,8 @@ class FailureDetector:
     def ping_node(self, target_node):
         target_fd_port = FD_BASE + target_node.node_id
         print(f"[FD] Node {self.node_id}: Sending direct Ping to Node {target_node.node_id} (FD port {target_fd_port})", flush=True)
+        print(f"Component FailureDetector of Node {self.node_id} sends RPC Ping to Component FailureDetector of Node {target_node.node_id}", flush=True)
+
         try:
             with grpc.insecure_channel(f"{target_node.host}:{target_fd_port}") as channel:
                 stub = swim_pb2_grpc.SwimServiceStub(channel)
@@ -55,6 +57,8 @@ class FailureDetector:
         for helper_node in ping_nodes:
             helper_fd_port = FD_BASE + helper_node.node_id
             print(f"[FD] Node {self.node_id}: Sending Indirect Ping via Node {helper_node.node_id} to check Node {target_node.node_id}", flush=True)
+            print(f"Component FailureDetector of Node {self.node_id} sends RPC IndirectPing to Component FailureDetector of Node {helper_node.node_id} for target {target_node.node_id}", flush=True)
+
             try:
                 with grpc.insecure_channel(f"{helper_node.host}:{helper_fd_port}") as channel:
                     stub = swim_pb2_grpc.SwimServiceStub(channel)

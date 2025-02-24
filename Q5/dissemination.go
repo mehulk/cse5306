@@ -150,7 +150,7 @@ func (s *DisseminationServer) BroadcastFailureToAll(failedNodeId int32) {
 // JoinCluster allows a new node to join by contacting a bootstrap node.
 func (s *DisseminationServer) JoinCluster(bootstrapHost string, bootstrapPort int, myHost string, myPort int, myNodeID int32) {
 	address := fmt.Sprintf("%s:%d", bootstrapHost, bootstrapPort)
-	fmt.Printf("Component Dissemination of Node %d sends RPC Join to bootstrap node\n", myNodeID)
+	//fmt.Printf("Component Dissemination of Node %d sends RPC Join to bootstrap node\n", myNodeID)
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
 		log.Printf("Unable to dial bootstrap node: %v", err)
@@ -220,7 +220,6 @@ func main() {
 		}
 	}()
 
-	// Bootstrap logic for new nodes
 	if os.Getenv("BOOTSTRAP_NEEDED") == "true" {
 		bootstrapAddr := os.Getenv("BOOTSTRAP_ADDRESS")
 		parts := strings.Split(bootstrapAddr, ":")
@@ -230,27 +229,34 @@ func main() {
 		host := parts[0]
 		port, _ := strconv.Atoi(parts[1])
 
-		// Allow server to start
 		time.Sleep(2 * time.Second)
 
-		srv.JoinCluster(
-			host,
-			port,
-			fmt.Sprintf("node%d", nodeID),
-			DC_BASE+int(nodeID),
-			nodeID,
-		)
+		fmt.Printf("Component Dissemination of Node %d sends RPC Join to Component Dissemination of Node %s\n",
+			nodeID, parts[0])
 
-		// Print and exit
-		srv.membershipMutex.RLock()
-		fmt.Println("=== Obtained Membership List ===")
-		for _, member := range srv.membershipList {
+		conn, err := grpc.Dial(fmt.Sprintf("%s:%d", host, port), grpc.WithInsecure())
+		if err != nil {
+			log.Fatalf("Failed to connect to bootstrap node: %v", err)
+		}
+		defer conn.Close()
+
+		client := pb.NewSwimServiceClient(conn)
+		res, err := client.Join(context.Background(), &pb.JoinRequest{
+			SenderId: nodeID,
+			Host:     fmt.Sprintf("node%d", nodeID),
+			Port:     int32(DC_BASE + int(nodeID)),
+		})
+		if err != nil {
+			log.Fatalf("Bootstrap failed: %v", err)
+		}
+
+		fmt.Println("\n=== Obtained Membership List ===")
+		for _, member := range res.MembershipList {
 			fmt.Printf("Node %d - %s:%d\n", member.NodeId, member.Host, member.Port)
 		}
-		srv.membershipMutex.RUnlock()
+		fmt.Println("================================")
 		os.Exit(0)
 	}
 
-	// Block main thread
 	select {}
 }

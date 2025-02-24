@@ -9,8 +9,9 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
-	pb "Q5new/swim" // Adjust this import path as needed
+	pb "Q5new/swim"
 
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -18,20 +19,16 @@ import (
 
 const DC_BASE = 60050
 
-// DisseminationServer implements the SwimService interface for dissemination.
 type DisseminationServer struct {
 	pb.UnimplementedSwimServiceServer
 
-	nodeID          int32
-	membershipMutex sync.RWMutex
-	membershipList  []*pb.NodeInfo
-
-	// For streaming membership updates.
+	nodeID           int32
+	membershipMutex  sync.RWMutex
+	membershipList   []*pb.NodeInfo
 	subscribers      []chan *pb.JoinResponse
 	subscribersMutex sync.Mutex
 }
 
-// NewDisseminationServer constructs a new DisseminationServer.
 func NewDisseminationServer(nodeID int32, membershipList []*pb.NodeInfo) *DisseminationServer {
 	return &DisseminationServer{
 		nodeID:         nodeID,
@@ -88,21 +85,9 @@ func (s *DisseminationServer) StreamMembership(_ *emptypb.Empty, stream pb.SwimS
 // Join is called by a new node to join the cluster.
 func (s *DisseminationServer) Join(ctx context.Context, req *pb.JoinRequest) (*pb.JoinResponse, error) {
 	fmt.Printf("Component Dissemination of Node %d runs RPC Join called by Node %d\n", s.nodeID, req.SenderId)
-	newNode := &pb.NodeInfo{
-		NodeId: req.SenderId,
-		Host:   req.Host,
-		Port:   req.Port,
-	}
 
-	s.membershipMutex.Lock()
-	defer s.membershipMutex.Unlock()
-	for _, n := range s.membershipList {
-		if n.NodeId == req.SenderId {
-			return &pb.JoinResponse{MembershipList: s.membershipList}, nil
-		}
-	}
-	s.membershipList = append(s.membershipList, newNode)
-	s.notifySubscribers()
+	s.membershipMutex.RLock()
+	defer s.membershipMutex.RUnlock()
 	return &pb.JoinResponse{MembershipList: s.membershipList}, nil
 }
 
@@ -165,7 +150,7 @@ func (s *DisseminationServer) BroadcastFailureToAll(failedNodeId int32) {
 // JoinCluster allows a new node to join by contacting a bootstrap node.
 func (s *DisseminationServer) JoinCluster(bootstrapHost string, bootstrapPort int, myHost string, myPort int, myNodeID int32) {
 	address := fmt.Sprintf("%s:%d", bootstrapHost, bootstrapPort)
-	fmt.Printf("Component Dissemination of Node %d sends RPC Join to bootstrap node\n", myNodeID)
+	//fmt.Printf("Component Dissemination of Node %d sends RPC Join to bootstrap node\n", myNodeID)
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
 		log.Printf("Unable to dial bootstrap node: %v", err)
@@ -198,9 +183,9 @@ func main() {
 	}
 	dcPort := DC_BASE + int(nodeID)
 
-	membershipStr := os.Getenv("MEMBERSHIP") // Format: "1:node1:60051,2:node2:60052,3:node3:60053,4:node4:60054,5:node5:60055"
+	// Initialize membership list
 	var membershipList []*pb.NodeInfo
-	if membershipStr != "" {
+	if membershipStr := os.Getenv("MEMBERSHIP"); membershipStr != "" {
 		nodes := strings.Split(membershipStr, ",")
 		for _, n := range nodes {
 			parts := strings.Split(n, ":")
@@ -223,10 +208,55 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to listen on port %d: %v", dcPort, err)
 	}
+
 	grpcServer := grpc.NewServer()
 	pb.RegisterSwimServiceServer(grpcServer, srv)
-	log.Printf("Dissemination component of Node %d listening on port %d", nodeID, dcPort)
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("Failed to serve gRPC: %v", err)
+
+	// Start server in goroutine
+	go func() {
+		log.Printf("Dissemination component of Node %d listening on port %d", nodeID, dcPort)
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("Failed to serve gRPC: %v", err)
+		}
+	}()
+
+	if os.Getenv("BOOTSTRAP_NEEDED") == "true" {
+		bootstrapAddr := os.Getenv("BOOTSTRAP_ADDRESS")
+		parts := strings.Split(bootstrapAddr, ":")
+		if len(parts) != 2 {
+			log.Fatal("Invalid BOOTSTRAP_ADDRESS format")
+		}
+		host := parts[0]
+		port, _ := strconv.Atoi(parts[1])
+
+		time.Sleep(2 * time.Second)
+
+		fmt.Printf("Component Dissemination of Node %d sends RPC Join to Component Dissemination of Node %s\n",
+			nodeID, parts[0])
+
+		conn, err := grpc.Dial(fmt.Sprintf("%s:%d", host, port), grpc.WithInsecure())
+		if err != nil {
+			log.Fatalf("Failed to connect to bootstrap node: %v", err)
+		}
+		defer conn.Close()
+
+		client := pb.NewSwimServiceClient(conn)
+		res, err := client.Join(context.Background(), &pb.JoinRequest{
+			SenderId: nodeID,
+			Host:     fmt.Sprintf("node%d", nodeID),
+			Port:     int32(DC_BASE + int(nodeID)),
+		})
+		if err != nil {
+			log.Fatalf("Bootstrap failed: %v", err)
+		}
+
+		fmt.Println("\n=== Obtained Membership List ===")
+		for _, member := range res.MembershipList {
+			fmt.Printf("Node %d - %s:%d\n", member.NodeId, member.Host, member.Port)
+		}
+		fmt.Println("================================")
+		os.Exit(0)
 	}
+
+	select {}
 }

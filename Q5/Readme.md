@@ -99,15 +99,15 @@ docker compose up
 
 #### Add a new node (e.g., node6):
 ```sh
-docker run -d \
-  --name node6 \
-  --network q5-new_swim_network \
+docker build -t swim-node .  # Build your image first
+
+docker run -it --rm --name node6 --hostname node6 \
+  --network q5_swim_network \
   -e NODE_ID=6 \
-  -e MEMBERSHIP="1:node1:60051" \
-  -e JOIN_BOOTSTRAP=true \
-  -p 50056:50056 \
-  -p 60056:60056 \
-  your_image_name
+  -e BOOTSTRAP_NEEDED=true \
+  -e BOOTSTRAP_ADDRESS=node1:60051 \
+  swim-node
+
 ```
 
 ### 7. Managing the Cluster

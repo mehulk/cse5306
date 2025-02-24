@@ -58,6 +58,21 @@ services:
       - "60055:60055"
     networks:
       - swim_network
+      
+  node6:
+    build: .
+    container_name: node6
+    hostname: node6
+    environment:
+      - NODE_ID=6
+      - BOOTSTRAP_NEEDED=true
+      - BOOTSTRAP_ADDRESS=node1:60051
+    ports:
+      - "60056:60056"
+    networks:
+      - swim_network
+    depends_on:
+      - node1
 
 networks:
   swim_network:

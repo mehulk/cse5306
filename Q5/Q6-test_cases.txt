@@ -1,0 +1,49 @@
+Test Case 1: New Node Joining the Cluster
+        This test case demonstrates the ability of a new node to join an existing cluster.
+        Start the cluster with 4 nodes (node1, node2, node3, node4).
+        After a short delay, start node5 and have it join the cluster.
+        Verify that node5 is added to the membership list of all existing nodes.
+    Implementation:
+        Modify your Docker Compose file to start only 4 nodes initially.
+        Add a delay, then start node5 with a command to join the cluster.
+        Check the logs of all nodes to confirm node5 is added to their membership lists.
+
+Test Case 2: Node Failure Detection
+        This test case verifies the failure detection mechanism.
+        Start all 5 nodes.
+        Manually stop one node (e.g., node3).
+        Observe if the remaining nodes detect the failure and update their membership lists.
+    Implementation:
+        Start all nodes using Docker Compose.
+        Use docker stop node3 to simulate a node failure.
+        Check the logs of other nodes to see if they detect and report the failure.
+
+Test Case 3: Indirect Ping and Failure Confirmation
+        This test case tests the indirect ping mechanism for confirming node failures.
+        Start all 5 nodes.
+        Modify one node (e.g., node2) to artificially fail direct pings but respond to indirect pings.
+        Observe if other nodes use indirect pings to confirm node2's status.
+    Implementation:
+        Modify the Ping method in node2's FD implementation to always return an error.
+        Ensure the IndirectPing method still works correctly.
+        Check logs to confirm that other nodes use indirect pings to verify node2's status.
+
+Test Case 4: Membership List Consistency
+        This test case ensures that all nodes maintain consistent membership lists.
+        Start all 5 nodes.
+        Introduce changes (join/leave) to the cluster.
+        After a short delay, verify that all nodes have identical membership lists.
+    Implementation:
+        Start all nodes, then add or remove a node.
+        Add a function to print the current membership list for each node.
+        Compare the membership lists across all nodes after changes.
+
+Test Case 5: Multiple Simultaneous Failures
+        This test case tests the system's resilience to multiple node failures.
+        Start all 5 nodes.
+        Simultaneously stop multiple nodes (e.g., node2 and node4).
+        Verify that the remaining nodes correctly update their membership lists.
+    Implementation:
+        Start all nodes using Docker Compose.
+        Use docker stop node2 node4 to simulate multiple failures.
+        Check the logs and membership lists of remaining nodes to ensure they've correctly removed the failed nodes.

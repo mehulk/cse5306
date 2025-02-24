@@ -4,7 +4,7 @@ import average_pb2_grpc
 import sys
 
 def run():
-    with grpc.insecure_channel('localhost:50051') as channel: #grpc correction
+    with grpc.insecure_channel('grpc-server:50051') as channel: #grpc correction
         stub = average_pb2_grpc.CalculatorStub(channel)
 
         # Unary RPC: Average of two numbers

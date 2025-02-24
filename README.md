@@ -4,9 +4,9 @@
 
 This repository contains our implementation and experiments for a multi-part assignment on Docker, gRPC, and the SWIM protocol. The project is organized into several sections corresponding to the questions in the assignment. The following README explains the assignment structure, outlines the development process for each question, and provides instructions on how to compile, run, and test the code.
 
-Authors
-Pranav S Damu - 1002158458
-Mehul Kanotra - 1002166093
+## Authors
+**Pranav S Damu - 1002158458**
+**Mehul Kanotra - 1002166093**
 
 ## Assignment Structure
 

@@ -8,6 +8,10 @@ Test Case 1: New Node Joining the Cluster
         Add a delay, then start node5 with a command to join the cluster.
         Check the logs of all nodes to confirm node5 is added to their membership lists.
 
+    Commands:
+        docker compose up node1 node2 node3 node4 node5
+        docker compose up node6
+
 Test Case 2: Node Failure Detection
         This test case verifies the failure detection mechanism.
         Start all 5 nodes.
@@ -18,6 +22,10 @@ Test Case 2: Node Failure Detection
         Use docker stop node3 to simulate a node failure.
         Check the logs of other nodes to see if they detect and report the failure.
 
+    Commands:
+        docker compose up node1 node2 node3 node4 node5
+        docker stop node3
+        
 Test Case 3: Node Failure Before Node6 Joins
         Ensures that failed nodes are promptly detected and removed.
         Validates that the updated membership list accurately reflects the current cluster state.
@@ -29,6 +37,10 @@ Test Case 3: Node Failure Before Node6 Joins
         Update node6’s environment to start with an empty membership (MEMBERSHIP: ""). Then start node6; Node6 should contact its bootstrap node (e.g., node2) and receive the current membership list (e.g. [1,2,4,5]).
         Check node6’s logs for a message indicating that it updated its membership from the bootstrap node, which should now exclude the failed node.
 
+    Commands:
+        docker compose up node1 node2 node3 node4 node5
+        docker stop node3
+        docker compose up node6
 
 Test Case 4: Membership List Consistency
         This test case ensures that all nodes maintain consistent membership lists.
@@ -39,6 +51,10 @@ Test Case 4: Membership List Consistency
         Start all nodes, then add or remove a node.
         Add a function to print the current membership list for each node.
         Compare the membership lists across all nodes after changes.
+    
+    Commands:
+        docker compose up node1 node2 node3 node4 node5
+        docker stop node3
 
 Test Case 5: Multiple Simultaneous Failures
         This test case tests the system's resilience to multiple node failures.
@@ -49,3 +65,7 @@ Test Case 5: Multiple Simultaneous Failures
         Start all nodes using Docker Compose.
         Use docker stop node2 node4 to simulate multiple failures.
         Check the logs and membership lists of remaining nodes to ensure they've correctly removed the failed nodes.
+
+    Commands:
+        docker compose up node1 node2 node3 node4 node5
+        docker stop node3 node2

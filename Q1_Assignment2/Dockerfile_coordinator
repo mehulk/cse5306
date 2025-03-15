@@ -1,0 +1,12 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY . /app
+
+RUN pip install grpcio grpcio-tools
+
+# Generate Python code from proto file
+RUN python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. two_phase_commit.proto
+
+CMD ["python", "coordinator.py"]

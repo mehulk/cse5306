@@ -98,6 +98,7 @@ class RaftNode(raft_pb2_grpc.RaftServicer):
                     
                     for peer in self.peers:
                         try:
+                            print(f"Node {self.node_id} sends RPC AppendEntries to Node {peer}")
                             if peer not in self.grpc_channels:
                                 channel = grpc.insecure_channel(peer)
                                 stub = raft_pb2_grpc.RaftStub(channel)
@@ -138,6 +139,7 @@ class RaftNode(raft_pb2_grpc.RaftServicer):
         
         for peer in self.peers:
             try:
+                print(f"Node {self.node_id} sends RPC RequestVote to Node {peer}")
                 if peer not in self.grpc_channels:
                     channel = grpc.insecure_channel(peer)
                     stub = raft_pb2_grpc.RaftStub(channel)
@@ -194,6 +196,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-##TO DO
-## correct logs as per requirement

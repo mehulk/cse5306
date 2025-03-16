@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package two_phase_commit;
+
+service TwoPhaseCommit {
+  rpc RequestVote(VoteRequest) returns (VoteResponse);
+}
+
+message VoteRequest {
+  string transaction_id = 1;
+}
+
+message VoteResponse {
+  string transaction_id = 1;
+  Vote vote = 2;
+}
+
+enum Vote {
+  COMMIT = 0;
+  ABORT = 1;
+}

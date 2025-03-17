@@ -6,30 +6,43 @@ import time
 from two_phase_commit_pb2 import VoteRequest, VoteResponse, COMMIT, ABORT
 from two_phase_commit_pb2_grpc import TwoPhaseCommitServicer, add_TwoPhaseCommitServicer_to_server
 
+PHASE_NAME = "VOTING"
+
+def vote_enum_to_str(vote_enum):
+    return "COMMIT" if vote_enum == COMMIT else "ABORT"
+
 class Participant(TwoPhaseCommitServicer):
     def RequestVote(self, request, context):
-        # Check environment variable
-        force_val = os.getenv("FORCE_COMMIT", "false").lower()
+        node_id = os.getenv("HOSTNAME", "PARTICIPANT")
+        listen_port = os.getenv("LISTEN_PORT", "50051")
 
+        # Before deciding, let's log the arrival
+        print(f"Phase {PHASE_NAME} of Node {node_id}:{listen_port} "
+              f"receives RPC RequestVote from Phase {PHASE_NAME} of Node COORDINATOR "
+              f"for transaction {request.transaction_id}")
+
+        # Decide
+        force_val = os.getenv("FORCE_COMMIT", "false").lower()
         if force_val == "true":
-            # Always commit if FORCE_COMMIT=true
             decision = COMMIT
         else:
-            # Otherwise random choice
             decision = random.choice([COMMIT, ABORT])
+        decision_str = vote_enum_to_str(decision)
 
-        transaction_id = request.transaction_id
-        print(f"Participant received vote request for {transaction_id}. "
-              f"FORCE_COMMIT={force_val}, Decision={decision}")
+        # Log the response
+        print(f"Phase {PHASE_NAME} of Node {node_id}:{listen_port} "
+              f"sends RPC RequestVoteResponse to Phase {PHASE_NAME} of Node COORDINATOR "
+              f"with vote={decision_str} for transaction {request.transaction_id}")
 
-        return VoteResponse(transaction_id=transaction_id, vote=decision)
+        return VoteResponse(transaction_id=request.transaction_id, vote=decision)
 
 def serve():
+    port = os.getenv("LISTEN_PORT", "50051")
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     add_TwoPhaseCommitServicer_to_server(Participant(), server)
-    server.add_insecure_port('[::]:50051')
+    server.add_insecure_port(f'[::]:{port}')
     server.start()
-    print("Participant node running on port 50051.")
+    print(f"Participant node running on port {port}.")
     try:
         while True:
             time.sleep(86400)

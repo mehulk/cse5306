@@ -2,13 +2,17 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Copy code
 COPY . /app
 
+# Install dependencies
 RUN pip install grpcio grpcio-tools
 
-# Generate Python code from proto file
+# Generate Python code from proto
 RUN python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. two_phase_commit.proto
 
+# Expose gRPC port (we'll use environment variable to choose the actual port)
 EXPOSE 50051
 
+# Default command runs participant.py
 CMD ["python", "participant.py"]

@@ -1,13 +1,3 @@
-Below is a **README.md** file that:
-
-1. Explains how to **build** the Docker images.  
-2. Shows how to **run** the containers **manually** (without the script) by starting each participant plus the coordinator.  
-3. Explains how to use the provided **`run_twopc.sh`** script, both in random mode and forced commit mode.  
-
-You can adapt the text as you see fit.
-
----
-
 # Two-Phase Commit (2PC) with Docker + gRPC
 
 This repository provides a simplified implementation of the Two-Phase Commit protocol:
@@ -214,19 +204,3 @@ All participants will start with `FORCE_COMMIT=true`, returning COMMIT votes.
 - If you’re running **via `run_twopc.sh`**:
   - Press **Ctrl+C** to stop the coordinator logs.
   - The script **automatically** does `docker rm -f ...` for you.
-
----
-
-## License
-
-*(Optional)*  
-You can choose a license for your project, e.g.:
-
-```text
-MIT License
-...
-```
-
----
-
-**That’s it!** Now you can either spin up the containers manually to test random/forced commit modes **or** just run `run_twopc.sh` for a quick one-command experience.

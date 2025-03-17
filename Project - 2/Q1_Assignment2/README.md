@@ -1,7 +1,3 @@
-Below is a **README** example you can include in your repository. It explains the **Two-Phase Commit** setup, how to build, how to run with either random or forced commits, and how to clean up afterwards. Feel free to modify the text to match your personal style or project requirements.
-
----
-
 # Two-Phase Commit Protocol (2PC) with Docker + gRPC
 
 This project demonstrates a simplified implementation of the Two-Phase Commit protocol using **Python**, **gRPC**, and **Docker**. It features:
@@ -159,33 +155,3 @@ In either case, you’ll see the coordinator logs in your terminal. Press **Ctrl
   ```bash
   docker network rm twopc_net
   ```
-
----
-
-## Extensions
-
-- **Decision Phase**: You could extend this to send a final “commit” or “abort” message to participants.
-- **Logging**: Persist logs to a file or external logging system.
-- **Multiple Transactions**: Modify the coordinator to handle a queue of transactions and gather multiple votes.
-- **Raft**: If you continue the assignment to implement Raft, you can integrate more sophisticated consensus logic.
-
----
-
-## License
-
-[Choose an appropriate license](https://choosealicense.com) for your project, for example:
-
-```
-MIT License
-
-Copyright (c) 2025 ...
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-...
-```
-
-*(Replace with the actual license text you wish to use.)*
-
----
-
-**Enjoy testing Two-Phase Commit with Docker and gRPC!**

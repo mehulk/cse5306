@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package two_phase_commit;
+
+option go_package = "twopc_project/twopc_go_pb";
+
+service TwoPhaseCommit {
+  rpc RequestVote (VoteRequest) returns (VoteResponse);
+  rpc GlobalDecision (GlobalDecisionRequest) returns (GlobalDecisionResponse);
+  rpc SendVotes (VotesReport) returns (AckResponse);
+}
+
+message VoteRequest {
+  string transaction_id = 1;
+}
+
+message VoteResponse {
+  string transaction_id = 1;
+  Vote vote = 2;
+}
+
+message GlobalDecisionRequest {
+  string transaction_id = 1;
+  Decision decision = 2;
+}
+
+message GlobalDecisionResponse {
+  string transaction_id = 1;
+  Ack ack = 2;
+}
+
+message VotesReport {
+  string transaction_id = 1;
+  repeated Vote votes = 2;
+}
+
+message AckResponse {
+  bool received = 1;
+}
+
+enum Vote { COMMIT = 0; ABORT = 1; }
+enum Decision { GLOBAL_COMMIT = 0; GLOBAL_ABORT = 1; }
+enum Ack { SUCCESS = 0; }

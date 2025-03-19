@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -80,7 +79,7 @@ func (s *server) SendVotes(ctx context.Context, req *pb.VotesReport) (*pb.AckRes
 	return &pb.AckResponse{Received: true}, nil
 }
 
-// Participant receives global decision from coordinator
+// Participant receives global decision from coordinator via gRPC
 func (s *server) GlobalDecision(ctx context.Context, req *pb.GlobalDecisionRequest) (*pb.GlobalDecisionResponse, error) {
 	fmt.Printf("Phase DECISION of Node %s receives RPC GlobalDecision from Phase DECISION of Node COORDINATOR\n", s.nodeID)
 
@@ -97,49 +96,52 @@ func (s *server) GlobalDecision(ctx context.Context, req *pb.GlobalDecisionReque
 }
 
 func main() {
-	role := flag.String("role", "", "Role of this node: coordinator or participant")
-	port := flag.String("port", "6000", "Port to run the Go gRPC server")
-	flag.Parse()
-
-	nodeID := os.Getenv("HOSTNAME")
+	nodeID := os.Getenv("NODE_ID")
 	if nodeID == "" {
-		nodeID = strings.ToUpper(*role)
+		log.Fatalf("NODE_ID environment variable is not set!")
 	}
 
-	lis, err := net.Listen("tcp", ":"+*port)
+	var port string
+	if nodeID == "COORDINATOR" {
+		port = "60050" // Fixed port for the coordinator
+	} else {
+		port = fmt.Sprintf("6005%s", nodeID) // Dynamic port for participants
+	}
+
+	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {
-		log.Fatalf("Failed to listen on port %s: %v", *port, err)
+		log.Fatalf("Failed to listen on port %s: %v", port, err)
 	}
 
 	s := &server{nodeID: nodeID}
 	gRPCServer := grpc.NewServer()
 	pb.RegisterTwoPhaseCommitServer(gRPCServer, s)
 
+	log.Printf("Participant gRPC server running on port %s...", port)
+
 	go func() {
-		log.Printf("%s gRPC server running on port %s...", strings.Title(*role), *port)
-		if err := gRPCServer.Serve(lis); err != nil {
-			log.Fatalf("Failed to serve gRPC server: %v", err)
+		if nodeID == "COORDINATOR" { // Coordinator-specific logic
+			fmt.Println("Coordinator waiting for votes...")
+
+			waitForVotes(s)
+
+			participantsEnv := os.Getenv("PARTICIPANT_ADDRS") // e.g., "participant1:60051,..."
+			if participantsEnv == "" {
+				log.Fatalf("PARTICIPANT_ADDRS environment variable is not set!")
+			}
+			participants := strings.Split(participantsEnv, ",")
+
+			decision := coordinatorDecision(s.votes)
+			sendGlobalDecision(s.transactionID, decision, participants, nodeID)
+
+			log.Println("Coordinator completed decision phase.")
+			os.Exit(0)
 		}
 	}()
 
-	if *role == "coordinator" {
-		fmt.Println("Coordinator waiting for votes...")
-
-		// Wait for votes to be sent via gRPC (handled by `SendVotes`)
-		waitForVotes(s)
-
-		// Process votes and send global decision
-		participantsEnv := os.Getenv("PARTICIPANT_ADDRS") // e.g., "participant1:6001,..."
-		participants := strings.Split(participantsEnv, ",")
-
-		decision := coordinatorDecision(s.votes)
-		sendGlobalDecision(s.transactionID, decision, participants, nodeID)
-
-		log.Println("Coordinator completed decision phase.")
-		os.Exit(0)
+	if err := gRPCServer.Serve(lis); err != nil {
+		log.Fatalf("Failed to serve gRPC server: %v", err)
 	}
-
-	select {}
 }
 
 func waitForVotes(s *server) {

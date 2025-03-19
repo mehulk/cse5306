@@ -7,21 +7,23 @@ from two_phase_commit_pb2_grpc import TwoPhaseCommitStub
 PHASE_NAME = "VOTING"
 NODE_ID = "COORDINATOR"
 
-PARTICIPANTS = [
-    "participant1:50051",
-    "participant2:50052",
-    "participant3:50053",
-    "participant4:50054",
-    "participant5:50055"
-]
-
 def vote_enum_to_str(vote_enum):
     """Helper to convert numeric enum to 'COMMIT' or 'ABORT' string."""
     return "COMMIT" if vote_enum == COMMIT else "ABORT"
 
+def get_participant_addresses():
+    """Dynamically calculate participant addresses based on NODE_ID."""
+    participant_count = int(os.getenv("PARTICIPANT_COUNT", "5"))  # Default to 5 participants
+    participants = []
+    for i in range(1, participant_count + 1):
+        voting_port = f"5005{i}"
+        participants.append(f"participant{i}:{voting_port}")
+    return participants
+
 def request_votes(transaction_id):
+    participants = get_participant_addresses()
     votes = []
-    for address in PARTICIPANTS:
+    for address in participants:
         # Print before sending
         print(f"Phase {PHASE_NAME} of Node {NODE_ID} sends RPC RequestVote "
               f"to Phase {PHASE_NAME} of Node {address} for transaction {transaction_id}")
@@ -44,7 +46,8 @@ def request_votes(transaction_id):
 def send_votes_to_go(transaction_id, votes):
     """Send collected votes to Go decision service."""
     print("Sending votes from Python coordinator to Go decision service...")
-    with grpc.insecure_channel('localhost:6000') as channel:
+    decision_port = "60050"  # Fixed decision port for coordinator
+    with grpc.insecure_channel(f'localhost:{decision_port}') as channel:
         stub = TwoPhaseCommitStub(channel)
         stub.SendVotes(VotesReport(transaction_id=transaction_id, votes=votes))
     print("Votes sent successfully.")

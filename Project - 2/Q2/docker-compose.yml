@@ -1,89 +1,94 @@
+version: '3.9'
+
 services:
   coordinator:
-    image: twopc_coordinator_image
+    build:
+      context: .
+      dockerfile: Dockerfile.coordinator
     container_name: coordinator
-    command: ["sh", "-c", "./global_decision -role=coordinator -port=6000 & python coordinator.py && wait"]
+    command: ["sh", "-c", "./global_decision -role=coordinator -port=60050 & python coordinator.py && wait"]
     environment:
-      PARTICIPANT_ADDRS: "participant1:6001,participant2:6002,participant3:6003,participant4:6004,participant5:6005"
+      NODE_ID: "COORDINATOR"
+      PARTICIPANT_ADDRS: "participant1:60051,participant2:60052,participant3:60053,participant4:60054,participant5:60055"
+      PARTICIPANT_COUNT: "5"
     ports:
       - "50050:50050"  # Voting phase (Python coordinator)
-      - "6000:6000"    # Decision phase (Go coordinator)
+      - "60050:60050"  # Decision phase (Go coordinator)
     networks:
       - twopc_net
-    depends_on:
-      - participant1
-      - participant2
-      - participant3
-      - participant4
-      - participant5
 
   participant1:
-    image: twopc_participant_image
+    build:
+      context: .
+      dockerfile: Dockerfile.participant
     container_name: participant1
-    command: ["sh", "-c", "./global_decision -role=participant -port=$DECISION_PORT & python participant.py && wait"]
+    command: ["sh", "-c", "./global_decision -role=participant -port=60051 & python participant.py && wait"]
     environment:
-      DECISION_PORT: "6001"
-      VOTING_PORT: "50051"
-      FORCE_COMMIT: "${FORCE_COMMIT:-false}"
+      NODE_ID: "1"
+      FORCE_COMMIT: "${FORCE_COMMIT}"  # Dynamically set FORCE_COMMIT
     ports:
       - "50051:50051"  # Voting phase (Python participant)
-      - "6001:6001"    # Decision phase (Go participant)
+      - "60051:60051"  # Decision phase (Go participant)
     networks:
       - twopc_net
 
   participant2:
-    image: twopc_participant_image
+    build:
+      context: .
+      dockerfile: Dockerfile.participant
     container_name: participant2
-    command: ["sh", "-c", "./global_decision -role=participant -port=$DECISION_PORT & python participant.py && wait"]
+    command: ["sh", "-c", "./global_decision -role=participant -port=60052 & python participant.py && wait"]
     environment:
-      DECISION_PORT: "6002"
-      VOTING_PORT: "50052"
-      FORCE_COMMIT: "${FORCE_COMMIT:-false}"
+      NODE_ID: "2"
+      FORCE_COMMIT: "${FORCE_COMMIT}"  # Dynamically set FORCE_COMMIT
     ports:
-      - "50052:50052"
-      - "6002:6002"
+      - "50052:50052"  # Voting phase (Python participant)
+      - "60052:60052"  # Decision phase (Go participant)
     networks:
       - twopc_net
 
   participant3:
-    image: twopc_participant_image
+    build:
+      context: .
+      dockerfile: Dockerfile.participant
     container_name: participant3
-    command: ["sh", "-c", "./global_decision -role=participant -port=$DECISION_PORT & python participant.py && wait"]
+    command: ["sh", "-c", "./global_decision -role=participant -port=60053 & python participant.py && wait"]
     environment:
-      DECISION_PORT: "6003"
-      VOTING_PORT: "50053"
-      FORCE_COMMIT: "${FORCE_COMMIT:-false}"
+      NODE_ID: "3"
+      FORCE_COMMIT: "${FORCE_COMMIT}"  # Dynamically set FORCE_COMMIT
     ports:
-      - "50053:50053"
-      - "6003:6003"
+      - "50053:50053"  # Voting phase (Python participant)
+      - "60053:60053"  # Decision phase (Go participant)
     networks:
       - twopc_net
 
   participant4:
-    image: twopc_participant_image
+    build:
+      context: .
+      dockerfile: Dockerfile.participant
     container_name: participant4
-    command: ["sh", "-c", "./global_decision -role=participant -port=$DECISION_PORT & python participant.py && wait"]
+    command: ["sh", "-c", "./global_decision -role=participant -port=60054 & python participant.py && wait"]
     environment:
-      DECISION_PORT: "6004"
-      VOTING_PORT: "50054"
-      FORCE_COMMIT: "${FORCE_COMMIT:-false}"
+      NODE_ID: "4"
+      FORCE_COMMIT: "${FORCE_COMMIT}"  # Dynamically set FORCE_COMMIT
     ports:
-      - "50054:50054"
-      - "6004:6004"
+      - "50054:50054"  # Voting phase (Python participant)
+      - "60054:60054"  # Decision phase (Go participant)
     networks:
       - twopc_net
 
   participant5:
-    image: twopc_participant_image
+    build:
+      context: .
+      dockerfile: Dockerfile.participant
     container_name: participant5
-    command: ["sh", "-c", "./global_decision -role=participant -port=$DECISION_PORT & python participant.py && wait"]
+    command: ["sh", "-c", "./global_decision -role=participant -port=60055 & python participant.py && wait"]
     environment:
-      DECISION_PORT: "6005"
-      VOTING_PORT: "50055"
-      FORCE_COMMIT: "${FORCE_COMMIT:-false}"
+      NODE_ID: "5"
+      FORCE_COMMIT: "${FORCE_COMMIT}"  # Dynamically set FORCE_COMMIT
     ports:
-      - "50055:50055"
-      - "6005:6005"
+      - "50055:50055"  # Voting phase (Python participant)
+      - "60055:60055"  # Decision phase (Go participant)
     networks:
       - twopc_net
 

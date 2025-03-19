@@ -188,19 +188,82 @@ To force commit from all participants, run:
 ./run_twopc.sh force
 ```
 
-All participants will start with `FORCE_COMMIT=true`, returning COMMIT votes.
+In either case, you’ll see the coordinator logs in your terminal. Press **Ctrl + C** to stop the coordinator, which will then trigger container cleanup.
 
 ---
 
-## Stopping and Cleaning Up
+## How It Works
 
-- If you’re running **manually**:  
-  - Press **Ctrl+C** in the coordinator’s terminal to stop it.  
-  - Then remove containers:
-    ```bash
-    docker rm -f coordinator participant1 participant2 participant3 participant4 participant5
-    docker network rm twopc_net
-    ```
-- If you’re running **via `run_twopc.sh`**:
-  - Press **Ctrl+C** to stop the coordinator logs.
-  - The script **automatically** does `docker rm -f ...` for you.
+### Coordinator
+
+- The coordinator loads a list of participant addresses (e.g., `participant1:50051`, etc.).
+- It sends a `VoteRequest` to each participant with a transaction ID (like `"txn123"`).
+- It collects `VoteResponse` messages. If **any** votes are `ABORT`, the coordinator prints “Aborting transaction.” Otherwise, it prints “All participants voted COMMIT. Proceeding to commit.”
+
+### Participant
+
+- Each participant runs a gRPC server on port `50051`.
+- By default, it randomly chooses between **COMMIT** and **ABORT**.
+- If it detects `FORCE_COMMIT=true` in the environment, it **always** returns **COMMIT** (0).
+- Participants log their decisions to stdout, which you can see via `docker logs` or by attaching to the container.
+
+### Script Behavior
+
+1. **Stop old containers** if they exist (coordinator, participant1..5).  
+2. **Create** the Docker network `twopc_net` if missing.  
+3. **Spin up** five participant containers:
+   - If `force` is passed, they run with `-e FORCE_COMMIT=true`.
+   - Otherwise, they run without that env variable (random commits/aborts).
+4. **Launch** the coordinator container in interactive mode. You see logs like:
+   ```
+   Coordinator initiating vote for transaction txn123
+   Received vote from participant1:50051: 0
+   Received vote from participant2:50051: 1
+   ...
+   At least one participant voted ABORT. Aborting transaction.
+   ```
+5. **After** you press `Ctrl + C` to stop the coordinator, the script removes all containers.
+
+---
+
+## Cleaning Up
+
+- The **`run_twopc.sh`** script automatically cleans up containers after you exit the coordinator. 
+- If you want to manually remove containers at any point, run:
+  ```bash
+  docker rm -f coordinator participant1 participant2 participant3 participant4 participant5
+  ```
+- To remove the Docker network:
+  ```bash
+  docker network rm twopc_net
+  ```
+
+---
+
+## Extensions
+
+- **Decision Phase**: You could extend this to send a final “commit” or “abort” message to participants.
+- **Logging**: Persist logs to a file or external logging system.
+- **Multiple Transactions**: Modify the coordinator to handle a queue of transactions and gather multiple votes.
+- **Raft**: If you continue the assignment to implement Raft, you can integrate more sophisticated consensus logic.
+
+---
+
+## License
+
+[Choose an appropriate license](https://choosealicense.com) for your project, for example:
+
+```
+MIT License
+
+Copyright (c) 2025 ...
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+...
+```
+
+*(Replace with the actual license text you wish to use.)*
+
+---
+
+**Enjoy testing Two-Phase Commit with Docker and gRPC!**

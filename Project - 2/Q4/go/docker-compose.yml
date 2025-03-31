@@ -1,0 +1,60 @@
+version: "3.8"
+services:
+  q4node1:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: q4node1
+    command: ["./q4server", "1", "6001", "q4node2:6002,q4node3:6003,q4node4:6004,q4node5:6005"]
+    ports:
+      - "6001:6001"
+    networks:
+      - raft-network
+
+  q4node2:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: q4node2
+    command: ["./q4server", "2", "6002", "q4node1:6001,q4node3:6003,q4node4:6004,q4node5:6005"]
+    ports:
+      - "6002:6002"
+    networks:
+      - raft-network
+
+  q4node3:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: q4node3
+    command: ["./q4server", "3", "6003", "q4node1:6001,q4node2:6002,q4node4:6004,q4node5:6005"]
+    ports:
+      - "6003:6003"
+    networks:
+      - raft-network
+
+  q4node4:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: q4node4
+    command: ["./q4server", "4", "6004", "q4node1:6001,q4node2:6002,q4node3:6003,q4node5:6005"]
+    ports:
+      - "6004:6004"
+    networks:
+      - raft-network
+
+  q4node5:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: q4node5
+    command: ["./q4server", "5", "6005", "q4node1:6001,q4node2:6002,q4node3:6003,q4node4:6004"]
+    ports:
+      - "6005:6005"
+    networks:
+      - raft-network
+
+networks:
+  raft-network:
+    external: true

@@ -1,3 +1,4 @@
+version: "3.8"
 services:
   node1:
     build: .
@@ -44,6 +45,16 @@ services:
     networks:
       - raft-network
 
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    container_name: testclient
+    depends_on:
+      - node1
+    networks:
+      - raft-network
+
 networks:
   raft-network:
-    driver: bridge
+    external: true

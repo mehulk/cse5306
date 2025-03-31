@@ -1,0 +1,14 @@
+# Use an official Python runtime.
+FROM python:3.9-slim
+
+# Set the working directory.
+WORKDIR /app
+
+# Copy the necessary files.
+COPY requirements.txt ./
+RUN pip install --no-cache-dir grpcio grpcio-tools
+
+COPY . .
+
+# Default command to run the test client.
+CMD ["python", "-u", "testclient.py"]

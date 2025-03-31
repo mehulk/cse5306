@@ -46,6 +46,6 @@ echo "Starting coordinator..."
 docker run -it --name coordinator --network twopc_net coordinator
 
 # After the coordinator exits, clean up all containers
-echo "Cleaning up containers..."
-docker rm -f coordinator participant1 participant2 participant3 participant4 participant5 2>/dev/null
-echo "All done!"
+# echo "Cleaning up containers..."
+# docker rm -f coordinator participant1 participant2 participant3 participant4 participant5 2>/dev/null
+# echo "All done!"

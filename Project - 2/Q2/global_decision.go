@@ -35,6 +35,9 @@ func coordinatorDecision(votes []pb.Vote) pb.Decision {
 
 // Coordinator sends global decision to participants
 func sendGlobalDecision(transactionID string, decision pb.Decision, participants []string, nodeID string) {
+
+	log.Printf("Coordinator sending global decision: %s", decision.String())
+
 	var wg sync.WaitGroup
 	for _, addr := range participants {
 		wg.Add(1)
@@ -49,7 +52,12 @@ func sendGlobalDecision(transactionID string, decision pb.Decision, participants
 
 			client := pb.NewTwoPhaseCommitClient(conn)
 
-			fmt.Printf("Phase DECISION of Node %s sends RPC GlobalDecision to Phase DECISION of Node %s\n", nodeID, address)
+			fmt.Printf(
+				"Phase DECISION of Node %s sends RPC GlobalDecision (%s) to Phase DECISION of Node %s\n",
+				nodeID,
+				decision.String(), // Add decision value
+				address,
+			)
 
 			resp, err := client.GlobalDecision(context.Background(), &pb.GlobalDecisionRequest{
 				TransactionId: transactionID,
@@ -81,7 +89,11 @@ func (s *server) SendVotes(ctx context.Context, req *pb.VotesReport) (*pb.AckRes
 
 // Participant receives global decision from coordinator via gRPC
 func (s *server) GlobalDecision(ctx context.Context, req *pb.GlobalDecisionRequest) (*pb.GlobalDecisionResponse, error) {
-	fmt.Printf("Phase DECISION of Node %s receives RPC GlobalDecision from Phase DECISION of Node COORDINATOR\n", s.nodeID)
+	fmt.Printf(
+		"Phase DECISION of Node %s receives RPC GlobalDecision (%s) from Phase DECISION of Node COORDINATOR\n",
+		s.nodeID,
+		req.Decision.String(), // Add decision value
+	)
 
 	if req.Decision == pb.Decision_GLOBAL_COMMIT {
 		fmt.Printf("Participant %s locally commits transaction %s\n", s.nodeID, req.TransactionId)
@@ -132,6 +144,7 @@ func main() {
 			participants := strings.Split(participantsEnv, ",")
 
 			decision := coordinatorDecision(s.votes)
+			log.Printf("Coordinator made decision: %s", decision.String())
 			sendGlobalDecision(s.transactionID, decision, participants, nodeID)
 
 			log.Println("Coordinator completed decision phase.")
@@ -149,3 +162,5 @@ func waitForVotes(s *server) {
 		time.Sleep(1 * time.Second)
 	}
 }
+
+//TODO : Add global decision in logs

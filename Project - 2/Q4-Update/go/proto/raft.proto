@@ -1,0 +1,27 @@
+syntax = "proto3";
+package raft;
+
+// The import path must match your Go module name, so adjust as necessary:
+option go_package = "q4/proto/raft;raft";
+
+message LogEntry {
+  string operation = 1; // e.g. "key=value"
+  int32 term = 2;       // the term in which this op was appended
+  int32 index = 3;      // position in the log (1-based)
+}
+
+message AppendEntriesRequest {
+  int32 term = 1;           // leader's term
+  int32 leaderId = 2;       // leader's ID
+  repeated LogEntry log = 3; // entire log
+  int32 commitIndex = 4;    // highest known committed op
+}
+
+message AppendEntriesResponse {
+  bool success = 1;
+  int32 nodeId = 2;
+}
+
+service LogReplicator {
+  rpc ReplicateLog(AppendEntriesRequest) returns (AppendEntriesResponse);
+}

@@ -1,8 +1,9 @@
 version: "3.8"
+
 services:
   node1:
     build: .
-    # container_name: node1
+    container_name: node1
     command: ["python", "-u", "raft-election.py", "-id=1", "-port=5001", "-peers=node2:5002,node3:5003,node4:5004,node5:5005"]
     ports:
       - "5001:5001"
@@ -11,7 +12,7 @@ services:
 
   node2:
     build: .
-    # container_name: node2
+    container_name: node2
     command: ["python", "-u", "raft-election.py", "-id=2", "-port=5002", "-peers=node1:5001,node3:5003,node4:5004,node5:5005"]
     ports:
       - "5002:5002"
@@ -20,7 +21,7 @@ services:
 
   node3:
     build: .
-    # container_name: node3
+    container_name: node3
     command: ["python", "-u", "raft-election.py", "-id=3", "-port=5003", "-peers=node1:5001,node2:5002,node4:5004,node5:5005"]
     ports:
       - "5003:5003"
@@ -29,7 +30,7 @@ services:
 
   node4:
     build: .
-    # container_name: node4
+    container_name: node4
     command: ["python", "-u", "raft-election.py", "-id=4", "-port=5004", "-peers=node1:5001,node2:5002,node3:5003,node5:5005"]
     ports:
       - "5004:5004"
@@ -38,7 +39,7 @@ services:
 
   node5:
     build: .
-    # container_name: node5
+    container_name: node5
     command: ["python", "-u", "raft-election.py", "-id=5", "-port=5005", "-peers=node1:5001,node2:5002,node3:5003,node4:5004"]
     ports:
       - "5005:5005"
@@ -49,12 +50,17 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.client
-    # container_name: testclient
+    container_name: raftclient
     depends_on:
       - node1
+      - node2
+      - node3
+      - node4
+      - node5
     networks:
       - raft-network
+    # no exposed ports needed for the client
 
 networks:
   raft-network:
-    external: true
+    external: true   # <--- IMPORTANT

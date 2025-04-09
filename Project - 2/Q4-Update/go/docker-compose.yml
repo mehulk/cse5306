@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  q4node1:
+    build: .
+    command: ["1", "6001", "q4node2:6002,q4node3:6003,q4node4:6004,q4node5:6005"]
+    ports:
+      - "6001:6001"
+    networks:
+      - raft-network
+
+  q4node2:
+    build: .
+    command: ["2", "6002", "q4node1:6001,q4node3:6003,q4node4:6004,q4node5:6005"]
+    ports:
+      - "6002:6002"
+    networks:
+      - raft-network
+
+  q4node3:
+    build: .
+    command: ["3", "6003", "q4node1:6001,q4node2:6002,q4node4:6004,q4node5:6005"]
+    ports:
+      - "6003:6003"
+    networks:
+      - raft-network
+
+  q4node4:
+    build: .
+    command: ["4", "6004", "q4node1:6001,q4node2:6002,q4node3:6003,q4node5:6005"]
+    ports:
+      - "6004:6004"
+    networks:
+      - raft-network
+
+  q4node5:
+    build: .
+    command: ["5", "6005", "q4node1:6001,q4node2:6002,q4node3:6003,q4node4:6004"]
+    ports:
+      - "6005:6005"
+    networks:
+      - raft-network
+
+networks:
+  raft-network:
+    external: true   # <--- matches the same external network

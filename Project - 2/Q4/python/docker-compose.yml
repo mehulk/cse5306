@@ -1,0 +1,86 @@
+version: "3.8"
+services:
+  # ---------- Python Raft nodes ----------
+  node1:
+    build: .
+    command: ["python","-u","raft-election.py","-id=1","-port=5001",
+              "-peers=node2:5002,node3:5003,node4:5004,node5:5005"]
+    container_name: node1
+    networks: [raft-net]
+    ports: ["5001:5001"]
+
+  node2:
+    build: .
+    command: ["python","-u","raft-election.py","-id=2","-port=5002",
+              "-peers=node1:5001,node3:5003,node4:5004,node5:5005"]
+    container_name: node2
+    networks: [raft-net]
+    ports: ["5002:5002"]
+
+  node3:
+    build: .
+    command: ["python","-u","raft-election.py","-id=3","-port=5003",
+              "-peers=node1:5001,node2:5002,node4:5004,node5:5005"]
+    container_name: node3
+    networks: [raft-net]
+    ports: ["5003:5003"]
+
+  node4:
+    build: .
+    command: ["python","-u","raft-election.py","-id=4","-port=5004",
+              "-peers=node1:5001,node2:5002,node3:5003,node5:5005"]
+    container_name: node4
+    networks: [raft-net]
+    ports: ["5004:5004"]
+
+  node5:
+    build: .
+    command: ["python","-u","raft-election.py","-id=5","-port=5005",
+              "-peers=node1:5001,node2:5002,node3:5003,node4:5004"]
+    container_name: node5
+    networks: [raft-net]
+    ports: ["5005:5005"]
+
+  # ---------- Go Log‑Replicator stack (built in ../go) ----------
+  q4node1:
+    build: ../go
+    command: ["./q4server","1","6001",
+              "q4node2:6002,q4node3:6003,q4node4:6004,q4node5:6005"]
+    networks: [raft-net]
+    ports: ["6001:6001"]
+  q4node2:
+    build: ../go
+    command: ["./q4server","2","6002",
+              "q4node1:6001,q4node3:6003,q4node4:6004,q4node5:6005"]
+    networks: [raft-net]
+    ports: ["6002:6002"]
+  q4node3:
+    build: ../go
+    command: ["./q4server","3","6003",
+              "q4node1:6001,q4node2:6002,q4node4:6004,q4node5:6005"]
+    networks: [raft-net]
+    ports: ["6003:6003"]
+  q4node4:
+    build: ../go
+    command: ["./q4server","4","6004",
+              "q4node1:6001,q4node2:6002,q4node3:6003,q4node5:6005"]
+    networks: [raft-net]
+    ports: ["6004:6004"]
+  q4node5:
+    build: ../go
+    command: ["./q4server","5","6005",
+              "q4node1:6001,q4node2:6002,q4node3:6003,q4node4:6004"]
+    networks: [raft-net]
+    ports: ["6005:6005"]
+
+  # ---------- test client ----------
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    depends_on: [node1]
+    networks: [raft-net]
+
+networks:
+  raft-net:
+    driver: bridge

@@ -1,0 +1,4 @@
+# perfectly compatible trio
+grpcio
+grpcio-tools    # protoc 3.22.x (no runtime_version import)
+protobuf        # last 4.x runtime; satisfies grpcio‑tools constraint

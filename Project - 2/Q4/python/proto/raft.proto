@@ -1,61 +1,38 @@
 syntax = "proto3";
-
 package raft;
-
 option go_package = "proto/raft;raft";
 
 message LogEntry {
   string operation = 1;
-  int32 term = 2;
-  int32 index = 3;
+  int32  term      = 2;
+  int32  index     = 3;
 }
 
 message AppendEntriesRequest {
-  int32 term = 1;         // Current term of the leader
-  int32 leaderId = 2;     // Leader's ID
-  repeated LogEntry log = 3;  // Log entries to replicate
-  int32 commitIndex = 4;  // Index of highest log entry known to be committed
+  int32               term        = 1;
+  int32               leaderId    = 2;
+  repeated LogEntry   log         = 3;
+  int32               commitIndex = 4;
 }
 
 message AppendEntriesResponse {
-  bool success = 1; 
-  int32 nodeId = 2; 
+  bool success = 1;
+  int32 nodeId = 2;
 }
 
-message VoteRequest {
-  int32 candidateId = 1; 
-  int32 term = 2; 
-}
+message VoteRequest  { int32 candidateId = 1; int32 term = 2; }
+message VoteResponse { bool  voteGranted = 1; int32 term = 2; }
 
-message VoteResponse {
-  bool voteGranted = 1;
-  int32 term = 2;
-}
+message ClientRequest  { string operation = 1; }
+message ClientResponse { string result    = 1; }
 
-message ClientRequest {
-  // The operation requested by the client
-  string operation = 1; 
-}
-
-message ClientResponse {
-  // Result of the operation
-  string result = 1; 
-}
-
-// For Q3’s existing service
 service Raft {
-  rpc AppendEntries(AppendEntriesRequest) returns (AppendEntriesResponse);
-  rpc RequestVote(VoteRequest) returns (VoteResponse);
-  rpc SubmitClientRequest(ClientRequest) returns (ClientResponse);
+  rpc AppendEntries      (AppendEntriesRequest) returns (AppendEntriesResponse);
+  rpc RequestVote        (VoteRequest)          returns (VoteResponse);
+  rpc SubmitClientRequest(ClientRequest)        returns (ClientResponse);
 }
 
-// For Q4’s log replication in Go
-// Alternatively, you can reuse the 'Raft' service itself, or add
-// specialized RPC calls for replication. Example below:
 service LogReplicator {
-  // Node -> LogReplicator server to store an incoming log entry
   rpc ReplicateLog(AppendEntriesRequest) returns (AppendEntriesResponse);
-
-  // Possibly a separate RPC for acknowledging or retrieving commit states, etc.
   rpc AckReplication(AppendEntriesResponse) returns (ClientResponse);
 }

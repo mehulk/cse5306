@@ -1,17 +1,22 @@
-# Use an official Python runtime as a parent image.
 FROM python:3.9-slim
-
-# Set the working directory.
 WORKDIR /app
+ENV PYTHONPATH=/app:/app/proto         
 
-# Install necessary packages.
-RUN pip install grpcio grpcio-tools
+# ----- deps -----
+COPY requirements.txt ./
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-# Copy the current directory contents into the container.
+# ----- source -----
 COPY . .
 
-# Expose ports (adjust if needed; here we expose a range for all nodes).
-EXPOSE 5001 5002 5003 5004 5005
+# ----- (re)generate stubs -----
+RUN rm -f proto/raft_pb2.py proto/raft_pb2_grpc.py && \
+    python -m grpc_tools.protoc -I ./proto \
+        --python_out=./proto --grpc_python_out=./proto \
+        ./proto/raft.proto && \
+    touch proto/__init__.py
 
-# Default command (can be overridden by docker-compose).
-CMD ["python", "-u", "raft-election.py", "-id=1", "-port=5001", "-leader", "-peers=node2:5002,node3:5003,node4:5004,node5:5005"]
+# sitecustomize shim already copied with source
+
+EXPOSE 5001 5002 5003 5004 5005
+CMD ["sleep","infinity"]

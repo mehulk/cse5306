@@ -1,14 +1,15 @@
-# Use an official Python runtime.
 FROM python:3.9-slim
-
-# Set the working directory.
 WORKDIR /app
+ENV PYTHONPATH=/app:/app/proto
 
-# Copy the necessary files.
 COPY requirements.txt ./
-RUN pip install --no-cache-dir grpcio grpcio-tools
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
+RUN rm -f proto/raft_pb2.py proto/raft_pb2_grpc.py && \
+    python -m grpc_tools.protoc -I ./proto \
+        --python_out=./proto --grpc_python_out=./proto \
+        ./proto/raft.proto && \
+    touch proto/__init__.py
 
-# Default command to run the test client.
-CMD ["python", "-u", "testclient.py"]
+CMD ["python","-u","testclient.py"]

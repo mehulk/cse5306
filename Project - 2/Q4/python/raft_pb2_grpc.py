@@ -26,8 +26,7 @@ if _version_not_supported:
 
 
 class RaftStub(object):
-    """For Q3’s existing service
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
         """Constructor.
@@ -53,8 +52,7 @@ class RaftStub(object):
 
 
 class RaftServicer(object):
-    """For Q3’s existing service
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def AppendEntries(self, request, context):
         """Missing associated documentation comment in .proto file."""
@@ -101,8 +99,7 @@ def add_RaftServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class Raft(object):
-    """For Q3’s existing service
-    """
+    """Missing associated documentation comment in .proto file."""
 
     @staticmethod
     def AppendEntries(request,
@@ -187,10 +184,7 @@ class Raft(object):
 
 
 class LogReplicatorStub(object):
-    """For Q4’s log replication in Go
-    Alternatively, you can reuse the 'Raft' service itself, or add
-    specialized RPC calls for replication. Example below:
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
         """Constructor.
@@ -211,21 +205,16 @@ class LogReplicatorStub(object):
 
 
 class LogReplicatorServicer(object):
-    """For Q4’s log replication in Go
-    Alternatively, you can reuse the 'Raft' service itself, or add
-    specialized RPC calls for replication. Example below:
-    """
+    """Missing associated documentation comment in .proto file."""
 
     def ReplicateLog(self, request, context):
-        """Node -> LogReplicator server to store an incoming log entry
-        """
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def AckReplication(self, request, context):
-        """Possibly a separate RPC for acknowledging or retrieving commit states, etc.
-        """
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -252,10 +241,7 @@ def add_LogReplicatorServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class LogReplicator(object):
-    """For Q4’s log replication in Go
-    Alternatively, you can reuse the 'Raft' service itself, or add
-    specialized RPC calls for replication. Example below:
-    """
+    """Missing associated documentation comment in .proto file."""
 
     @staticmethod
     def ReplicateLog(request,
